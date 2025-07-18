@@ -8,7 +8,7 @@ export default function Home() {
 
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries());
-
+    
     const response = await fetch('/api/absensi', {
       method: 'POST',
       headers: {
@@ -21,7 +21,8 @@ export default function Home() {
       console.log('Data berhasil dikirim');
       router.push('/absensi');
     } else {
-      console.error('Gagal mengirim data');
+      const errorText = await response.text();
+      console.error('Error response:', errorText);
     }
   };
 
@@ -29,8 +30,6 @@ export default function Home() {
     <div className="min-h-screen flex items-center justify-center px-6">
       <form 
         onSubmit={handleSubmit} 
-        method="POST"
-        action="/api/absensi" 
         className="bg-slate-300 w-full lg:w-1/3 px-6 py-4 rounded-xl shadow-md">
         <h1 className="text-2xl font-bold mb-4 text-center">Daftar Kehadiran Siswa</h1>
 

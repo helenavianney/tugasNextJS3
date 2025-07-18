@@ -1,19 +1,7 @@
-const students = [
-    {
-        id: 1,
-        nisn: '1234567890',
-        nama: 'John Doe',
-        absensi: 'Sakit',
-    },
-    {
-        id: 2,
-        nisn: '0987654321',
-        nama: 'Jane Doe',
-        absensi: 'Hadir',
-    },
-];
+import { prisma } from '@/lib/prisma'
 
 export async function GET() {
+    const students = await prisma.student.findMany()
 
     return new Response(JSON.stringify(students), {
         status: 200,
@@ -24,17 +12,15 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-    const body = await request.json();
-    const { nisn, nama, absensi } = body;
+    const { nisn, nama, absensi } = await request.json()
 
-    const newStudent = {
-        id: Date.now(),
-        nisn: nisn,
-        nama: nama,
-        absensi: absensi,
-    };
-
-    students.push(newStudent);
+    const newStudent = await prisma.student.create({
+        data: {
+            nisn,
+            nama,
+            absensi,
+        }
+    });
     
     return new Response(JSON.stringify(newStudent), {
         status: 201,
@@ -45,23 +31,14 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-    const body = await request.json();
-    const { id, nisn, nama, absensi } = body;
+    const { id, nisn, nama, absensi } = await request.json();
 
-    const studentIndex = students.findIndex(student => student.id === id);
-    
-    if (studentIndex === -1) {
-        return new Response(JSON.stringify({ error: 'Student not found' }), {
-            status: 404,
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-    }
+    const updatedStudent = await prisma.student.update({
+        where: { id },
+        data: { nisn, nama, absensi },
+    })
 
-    students[studentIndex] = { id, nisn, nama, absensi };
-
-    return new Response(JSON.stringify(students[studentIndex]), {
+    return new Response(JSON.stringify(updatedStudent), {
         status: 200,
         headers: {
             'Content-Type': 'application/json'
@@ -73,19 +50,10 @@ export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url);
     const id = parseInt(searchParams.get('id') || '0');
 
-    const studentIndex = students.findIndex(student => student.id === id);
+    const deletedStudent = await prisma.student.delete({
+        where: { id },
+    })
     
-    if (studentIndex === -1) {
-        return new Response(JSON.stringify({ error: 'Student not found' }), {
-            status: 404,
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-    }
-
-    const deletedStudent = students.splice(studentIndex, 1)[0];
-
     return new Response(JSON.stringify({ message: 'Student deleted successfully', student: deletedStudent }), {
         status: 200,
         headers: {
